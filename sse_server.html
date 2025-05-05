@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stock Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        td {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1 style="text-align:center;">Live Stock Prices</h1>
+    <table id="stockTable">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Price ($)</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <script>
+        const stockTable = document.getElementById('stockTable').getElementsByTagName('tbody')[0];
+
+        const source = new EventSource('sse_server.php');
+        source.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const newRow = stockTable.insertRow(0);
+            newRow.innerHTML = `
+            <td>${data.symbol}</td>
+            <td>${data.price.toFixed(2)}</td>
+            <td>${data.timestamp}</td>
+        `;
+        };
+
+        source.onerror = function() {
+            console.error("Error with SSE connection");
+            source.close();
+        };
+    </script>
+
+</body>
+
+</html>

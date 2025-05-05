@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Notifications Using SSE</title>
+    <style>
+        #status {
+            padding: 10px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .connected {
+            background-color: green;
+        }
+        
+        .disconnected {
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status" class="disconnected">Disconnected</div>
+    <h1>Live Notifications</h1>
+    <div id="messages"></div>
+
+    <script>
+        var source = new EventSource("server.php");
+
+        source.onopen = function() {
+            console.log('Connection established');
+            updateStatus(true); 
+        };
+
+        source.onmessage = function(event) {
+            displayMessage(event.data);
+        };
+
+        source.onclose = function() {
+            console.log('Connection closed');
+            updateStatus(false); 
+        };
+
+        function updateStatus(connected) {
+            const statusDiv = document.getElementById('status');
+            if (connected) {
+                statusDiv.textContent = 'Connected';
+                statusDiv.classList.remove('disconnected');
+                statusDiv.classList.add('connected');
+            } else {
+                statusDiv.textContent = 'Disconnected';
+                statusDiv.classList.remove('connected');
+                statusDiv.classList.add('disconnected');
+            }
+        }
+
+        function displayMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const newMessage = document.createElement('p');
+            newMessage.textContent = message;
+            messagesDiv.appendChild(newMessage);
+        }
+    </script>
+</body>
+
+</html>

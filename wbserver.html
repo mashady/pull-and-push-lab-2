@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Reconnect Example</title>
+    <style>
+        #status {
+            padding: 10px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .connected {
+            background-color: green;
+        }
+        
+        .disconnected {
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status" class="disconnected">Disconnected</div>
+    <h1>WebSocket Reconnect Example</h1>
+    <div id="messages"></div>
+
+    <script>
+        let socket;
+        let reconnectInterval = 5000; 
+
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:8080');
+
+            socket.onopen = function() {
+                console.log('WebSocket connected');
+                updateStatus(true); 
+            };
+
+            socket.onmessage = function(event) {
+                displayMessage(event.data);
+            };
+
+            socket.onclose = function() {
+                console.log('WebSocket disconnected');
+                updateStatus(false); 
+                setTimeout(connectWebSocket, reconnectInterval);
+            };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket Error:', error);
+            };
+        }
+
+        function updateStatus(connected) {
+            const statusDiv = document.getElementById('status');
+            if (connected) {
+                statusDiv.textContent = 'Connected';
+                statusDiv.classList.remove('disconnected');
+                statusDiv.classList.add('connected');
+            } else {
+                statusDiv.textContent = 'Disconnected';
+                statusDiv.classList.remove('connected');
+                statusDiv.classList.add('disconnected');
+            }
+        }
+
+        function displayMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const newMessage = document.createElement('p');
+            newMessage.textContent = message;
+            messagesDiv.appendChild(newMessage);
+        }
+
+        window.onload = function() {
+            connectWebSocket(); 
+        };
+    </script>
+</body>
+
+</html>

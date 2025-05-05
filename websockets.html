@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        
+        #statusContainer {
+            margin-top: 10px;
+        }
+        
+        .statusBox {
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid #ccc;
+            width: 300px;
+            margin: 10px auto;
+            border-radius: 5px;
+            transition: background-color 0.5s;
+        }
+        
+        .connected {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .disconnected {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        #chatBox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: scroll;
+            width: 80%;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        
+        #messageInput {
+            padding: 10px;
+            width: 60%;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>WebSocket Chat</h2>
+
+    <div id="statusContainer"></div>
+
+    <input type="text" id="messageInput" placeholder="Please type a message ..." />
+    <button onclick="sendMessage()">Send</button>
+
+    <div id="chatBox">
+        <p><strong>Chat Messages:</strong></p>
+    </div>
+
+    <script>
+        function appendStatus(connected) {
+            const statusContainer = document.getElementById("statusContainer");
+
+            const statusDiv = document.createElement("div");
+            statusDiv.classList.add("statusBox");
+
+            if (connected) {
+                statusDiv.textContent = "Connected";
+                statusDiv.classList.add("connected");
+                statusDiv.classList.remove("disconnected");
+            } else {
+                statusDiv.textContent = "Disconnected";
+                statusDiv.classList.add("disconnected");
+                statusDiv.classList.remove("connected");
+            }
+
+            statusContainer.insertBefore(statusDiv, statusContainer.firstChild);
+        }
+
+        let socket = new WebSocket("ws://localhost:8083");
+
+        socket.onopen = function() {
+            console.log("WebSocket is connected.");
+            appendStatus(true); 
+        };
+
+        socket.onclose = function() {
+            console.log("WebSocket is disconnected.");
+            appendStatus(false); 
+            reconnect(); 
+        };
+
+        socket.onmessage = function(event) {
+            console.log("Message from server: ", event.data);
+            const chatBox = document.getElementById('chatBox');
+            const message = document.createElement('p');
+            message.classList.add('message');
+            message.textContent = event.data;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight; 
+        };
+
+        socket.onerror = function(error) {
+            console.error("WebSocket Error: ", error);
+        };
+
+        function reconnect() {
+            console.log("Reconnecting...");
+            setTimeout(() => {
+                socket = new WebSocket("ws://localhost:8083");
+            }, 3000); 
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (message && socket.readyState === WebSocket.OPEN) {
+                socket.send(message);
+                input.value = ''; 
+            } else if (socket.readyState !== WebSocket.OPEN) {
+                alert('WebSocket is not connected. Please wait or refresh the page.');
+            }
+        }
+    </script>
+</body>
+
+</html>
